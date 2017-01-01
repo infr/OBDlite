@@ -1,0 +1,9 @@
+ccb32f9247b4afee3043987ec3fa2d4b  usr/share/applications/pyobd.desktop
+f56ea9ff393cc392dd8fdb15a2c45d59  usr/share/doc/pyobd/changelog.gz
+6ec013386dc26a74523cdd36c45a6a5f  usr/share/doc/pyobd/copyright
+1af2918732ca305d4693253190a224aa  usr/share/pyobd/debugEvent.py
+5936ed430e5405729fb2b9eae345d2a8  usr/share/pyobd/obd2_codes.py
+5f6706c5c32ba878c2860859adde1530  usr/share/pyobd/obd_io.py
+1e49d605de296c12064af8e1306fad96  usr/share/pyobd/obd_sensors.py
+e3df196d79554a7ab9aeaa71de318b96  usr/share/pyobd/pyobd
+62a7033e10bdf6bec833bb8d9c003ed5  usr/share/pyobd/pyobd.gif

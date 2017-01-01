@@ -37,6 +37,7 @@ import platform
 import time
 import ConfigParser #safe application configuration
 import webbrowser #open browser from python
+import glob # 
 
 from obd2_codes import pcodes
 from obd2_codes import ptest
@@ -356,7 +357,7 @@ class MyApp(wx.App):
         else:
           self.configfilepath=os.environ['HOME']+'/.pyobdrc'
         if self.config.read(self.configfilepath)==[]:
-          self.COMPORT="/dev/ttyACM0"
+          self.COMPORT="/dev/tty.OBDII-SPP"
           self.RECONNATTEMPTS=5
           self.SERTIMEOUT=2
         else:
@@ -589,15 +590,16 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.nb.SetSelection(3)
         
     
-    def scanSerial(self):
+    def scanSerialOld(self):
         """scan for available ports. return a list of serial names"""
         available = []
         for i in range(256):
           try: #scan standart ttyS*
+            print i
             s = serial.Serial(i)
             available.append(s.portstr)
             s.close()   # explicit close 'cause of delayed GC in java
-          except serial.SerialException:
+          except (OSError, serial.SerialException): # OSError for macOS
             pass
         for i in range(256):
           try: #scan USB ttyACM
@@ -634,6 +636,35 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
               pass 
         
         return available
+
+    def scanSerial(self):
+      """ Lists serial port names - http://stackoverflow.com/questions/12090503/listing-available-com-ports-with-python
+
+          :raises EnvironmentError:
+              On unsupported or unknown platforms
+          :returns:
+              A list of the serial ports available on the system
+      """
+      if sys.platform.startswith('win'):
+          ports = ['COM%s' % (i + 1) for i in range(256)]
+      elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+          # this excludes your current terminal "/dev/tty"
+          ports = glob.glob('/dev/tty[A-Za-z]*')
+      elif sys.platform.startswith('darwin'):
+          ports = glob.glob('/dev/tty.*')
+      else:
+          raise EnvironmentError('Unsupported platform')
+
+      result = []
+      for port in ports:
+          try:
+              s = serial.Serial(port)
+              s.close()
+              result.append(port)
+          except (OSError, serial.SerialException):
+              pass
+      return result
+
 
     def Configure(self,e = None):
         id = 0

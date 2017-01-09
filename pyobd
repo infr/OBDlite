@@ -357,7 +357,7 @@ class MyApp(wx.App):
         else:
           self.configfilepath=os.environ['HOME']+'/.pyobdrc'
         if self.config.read(self.configfilepath)==[]:
-          self.COMPORT="/dev/tty.OBDII-SPP"
+          self.COMPORT="/dev/cu.OBDII-SPP"
           self.RECONNATTEMPTS=5
           self.SERTIMEOUT=2
         else:
@@ -645,21 +645,23 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
           :returns:
               A list of the serial ports available on the system
       """
+      ports = []
       if sys.platform.startswith('win'):
           ports = ['COM%s' % (i + 1) for i in range(256)]
       elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
           # this excludes your current terminal "/dev/tty"
           ports = glob.glob('/dev/tty[A-Za-z]*')
       elif sys.platform.startswith('darwin'):
-          ports = glob.glob('/dev/tty.*')
+          ports.extend(glob.glob('/dev/tty.*'))
+          #ports.extend(glob.glob('/dev/cu.*'))
       else:
           raise EnvironmentError('Unsupported platform')
 
       result = []
       for port in ports:
           try:
-              s = serial.Serial(port)
-              s.close()
+              #s = serial.Serial(port)
+              #s.close()
               result.append(port)
           except (OSError, serial.SerialException):
               pass

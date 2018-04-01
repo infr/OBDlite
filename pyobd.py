@@ -116,9 +116,10 @@ class MyApp(wx.App):
             ListCtrlAutoWidthMixin.__init__(self)
                 
     class sensorProducer(threading.Thread):
-        def __init__(self, _notify_window,portName,SERTIMEOUT,RECONNATTEMPTS,_nb):
+        def __init__(self, _notify_window,portName,BAUD,SERTIMEOUT,RECONNATTEMPTS,_nb):
             from Queue import Queue
             self.portName = portName
+            self.BAUD=BAUD
             self.RECONNATTEMPTS=RECONNATTEMPTS
             self.SERTIMEOUT=SERTIMEOUT 
             self.port = None
@@ -127,7 +128,7 @@ class MyApp(wx.App):
             threading.Thread.__init__ ( self )
         
         def initCommunication(self):
-            self.port     = obd_io.OBDPort(self.portName,self._notify_window,self.SERTIMEOUT,self.RECONNATTEMPTS)
+            self.port     = obd_io.OBDPort(self.portName,self._notify_window,self.BAUD,self.SERTIMEOUT,self.RECONNATTEMPTS)
             
             if self.port.State==0: #Cant open serial port
                 return None
@@ -358,10 +359,15 @@ class MyApp(wx.App):
           self.configfilepath=os.environ['HOME']+'/.pyobdrc'
         if self.config.read(self.configfilepath)==[]:
           self.COMPORT="/dev/cu.OBDII-SPP"
+          self.BAUD=9600
           self.RECONNATTEMPTS=5
           self.SERTIMEOUT=2
         else:
           self.COMPORT=self.config.get("pyOBD","COMPORT")
+          try:
+            self.BAUD=self.config.getint("pyOBD","BAUD")
+          except:
+            self.BAUD = 9600
           self.RECONNATTEMPTS=self.config.getint("pyOBD","RECONNATTEMPTS")
           self.SERTIMEOUT=self.config.getint("pyOBD","SERTIMEOUT")
         
@@ -528,7 +534,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         if self.senprod: # signal current producers to finish
             self.senprod.stop()
         self.ThreadControl = 0    
-        self.senprod = self.sensorProducer(self,self.COMPORT,self.SERTIMEOUT,self.RECONNATTEMPTS,self.nb)
+        self.senprod = self.sensorProducer(self,self.COMPORT,self.BAUD,self.SERTIMEOUT,self.RECONNATTEMPTS,self.nb)
         self.senprod.start() 
         
         self.sensor_control_on()
@@ -673,22 +679,28 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         diag = wx.Dialog(self.frame, id, title="Configure")
         sizer = wx.BoxSizer(wx.VERTICAL)
         
+        #serial port
+        portPanel = wx.Panel(diag, -1)
         ports = self.scanSerial()
-        rb = wx.RadioBox(diag, id, "Choose Serial Port",
-                        choices = ports, style = wx.RA_SPECIFY_COLS,
-                        majorDimension = 2)
-                        
-        sizer.Add(rb, 0)
+        portCtrl = wx.ComboBox(portPanel, id, "Choose Serial Port", pos=(143,0), size=(70, 25),
+                        choices = ports, style = wx.CB_READONLY)
+        portStatic = wx.StaticText(portPanel,-1,'Serial port:',pos=(3,5),size=(140,20))
+
+        #baud rate input control
+        baudPanel = wx.Panel(diag, -1)
+        baudCtrl = wx.TextCtrl(baudPanel, -1, '',pos=(143,0), size=(55, 25))
+        baudStatic = wx.StaticText(baudPanel,-1,'Baud rate:',pos=(3,5),size=(140,20))
+        baudCtrl.SetValue(str(self.BAUD))        
 
         #timeOut input control                
         timeoutPanel = wx.Panel(diag, -1)
-        timeoutCtrl = wx.TextCtrl(timeoutPanel, -1, '',pos=(140,0), size=(35, 25))
+        timeoutCtrl = wx.TextCtrl(timeoutPanel, -1, '',pos=(143,0), size=(35, 25))
         timeoutStatic = wx.StaticText(timeoutPanel,-1,'Timeout:',pos=(3,5),size=(140,20))
         timeoutCtrl.SetValue(str(self.SERTIMEOUT))
         
         #reconnect attempt input control                
         reconnectPanel = wx.Panel(diag, -1)
-        reconnectCtrl = wx.TextCtrl(reconnectPanel, -1, '',pos=(140,0), size=(35, 25))
+        reconnectCtrl = wx.TextCtrl(reconnectPanel, -1, '',pos=(143,0), size=(35, 25))
         reconnectStatic = wx.StaticText(reconnectPanel,-1,'Reconnect attempts:',pos=(3,5),size=(140,20))
         reconnectCtrl.SetValue(str(self.RECONNATTEMPTS))
         
@@ -698,10 +710,11 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         
         #set actual serial port choice
         if (self.COMPORT != 0) and (self.COMPORT in ports):
-          rb.SetSelection(ports.index(self.COMPORT))
-        
+          portCtrl.SetSelection(ports.index(self.COMPORT))
         
         sizer.Add(self.OpenLinkButton)
+        sizer.Add(portPanel,0)
+        sizer.Add(baudPanel,0)
         sizer.Add(timeoutPanel,0)
         sizer.Add(reconnectPanel,0)
         
@@ -720,13 +733,17 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             if self.config.sections()==[]:
               self.config.add_section("pyOBD")
             #set and save COMPORT
-            self.COMPORT = ports[rb.GetSelection()]
+            self.COMPORT = ports[portCtrl.GetSelection()]
             self.config.set("pyOBD","COMPORT",self.COMPORT) 
             
+            #set and save BAUD
+            self.BAUD = int(baudCtrl.GetValue())
+            self.config.set("pyOBD","BAUD",self.BAUD) 
+
             #set and save SERTIMEOUT
             self.SERTIMEOUT = int(timeoutCtrl.GetValue())
             self.config.set("pyOBD","SERTIMEOUT",self.SERTIMEOUT)
-            self.status.SetStringItem(3,1,self.COMPORT); 
+            self.status.SetItem(3,1,self.COMPORT); 
             
             #set and save RECONNATTEMPTS
             self.RECONNATTEMPTS = int(reconnectCtrl.GetValue())

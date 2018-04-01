@@ -248,10 +248,10 @@ class MyApp(wx.App):
             print sel, state
             if   state == 0:
                 self.senprod.on(sel)
-                self.sensors.SetStringItem(sel,1,"1")
+                self.sensors.SetItem(sel,1,"1")
             elif state == 1:
                 self.senprod.off(sel)
-                self.sensors.SetStringItem(sel,1,"0")
+                self.sensors.SetItem(sel,1,"0")
             else:
                 debug("Incorrect sensor state")
         
@@ -287,8 +287,8 @@ class MyApp(wx.App):
         self.sensors.InsertColumn(2, "Value")
         for i in range(0, len(obd_io.obd_sensors.SENSORS)):
             s = obd_io.obd_sensors.SENSORS[i].name
-            self.sensors.InsertStringItem(i, "")
-            self.sensors.SetStringItem(i, 1, s)
+            self.sensors.InsertItem(i, "")
+            self.sensors.SetItem(i, 1, s)
             
         
         ####################################################################
@@ -296,8 +296,8 @@ class MyApp(wx.App):
         def OnPSize(e, win = panel):
             panel.SetSize(e.GetSize())
             self.sensors.SetSize(e.GetSize())
-            w,h = self.frame.GetClientSizeTuple()
-            self.sensors.SetDimensions(0,HOFFSET_LIST, w-10 , h - 35 )
+            w,h = self.frame.GetClientSize()
+            self.sensors.SetSize(0,HOFFSET_LIST, w-10 , h - 35 )
 
         panel.Bind(wx.EVT_SIZE,OnPSize)
         ####################################################################
@@ -326,9 +326,9 @@ class MyApp(wx.App):
         def OnPSize(e, win = self.DTCpanel):
             self.DTCpanel.SetSize(e.GetSize())
             self.dtc.SetSize(e.GetSize())
-            w,h = self.frame.GetClientSizeTuple()
+            w,h = self.frame.GetClientSize()
             # I have no idea where 70 comes from
-            self.dtc.SetDimensions(0,HOFFSET_LIST, w-16 , h - 70 )
+            self.dtc.SetSize(0,HOFFSET_LIST, w-16 , h - 70 )
 
         self.DTCpanel.Bind(wx.EVT_SIZE,OnPSize)
         ####################################################################
@@ -505,16 +505,16 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.HelpAboutDlg.Destroy()
         
     def OnResult(self,event):
-        self.sensors.SetStringItem(event.data[0], event.data[1], event.data[2])
+        self.sensors.SetItem(event.data[0], event.data[1], event.data[2])
     
     def OnStatus(self,event):
         if event.data[0] == 666: #signal, that connection falied
             self.sensor_control_off()
         else:
-            self.status.SetStringItem(event.data[0], event.data[1], event.data[2])
+            self.status.SetItem(event.data[0], event.data[1], event.data[2])
     
     def OnTests(self,event):
-        self.OBDTests.SetStringItem(event.data[0], event.data[1], event.data[2])
+        self.OBDTests.SetItem(event.data[0], event.data[1], event.data[2])
          
     def OnDebug(self,event):    
         self.TraceDebug(event.data[0],event.data[1])
@@ -544,9 +544,9 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.ThreadControl=2
         
     def AddDTC(self, code):
-        self.dtc.InsertStringItem(0, "")
-        self.dtc.SetStringItem(0, 0, code[0])
-        self.dtc.SetStringItem(0, 1, code[1])
+        self.dtc.InsertItem(0, "")
+        self.dtc.SetItem(0, 0, code[0])
+        self.dtc.SetItem(0, 1, code[1])
 
 
     def CodeLookup(self,e = None):

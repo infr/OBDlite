@@ -71,10 +71,10 @@ def decrypt_dtc_code(code):
 
 class OBDPort:
      """ OBDPort abstracts all communication with OBD-II device."""
-     def __init__(self,portnum,_notify_window,SERTIMEOUT,RECONNATTEMPTS):
+     def __init__(self,portnum,_notify_window,BAUD,SERTIMEOUT,RECONNATTEMPTS):
          """Initializes port by resetting device and gettings supported PIDs. """
          # These should really be set by the user.
-         baud     = 9600
+         baud     = BAUD
          databits = 8
          par      = serial.PARITY_NONE  # parity
          sb       = 1                   # stop bits
